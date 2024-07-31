@@ -3,6 +3,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include <ATen/cuda/CUDAContext.h>
 
 // atomicAdd for double-precision floating-point numbers on hardware with
 // compute capability < 6.0 from:
@@ -265,10 +266,11 @@ void vecquant2matmul_cuda(
     (width + BLOCKWIDTH - 1) / BLOCKWIDTH
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
   AT_DISPATCH_FLOATING_TYPES(
     vec.type(), "vecquant2matmul_cuda", ([&] {
-      VecQuant2MatMulKernel<<<blocks, threads>>>(
+      VecQuant2MatMulKernel<<<blocks, threads, 0, stream>>>(
         vec.data<scalar_t>(), mat.data<int>(), mul.data<scalar_t>(),
         scales.data<scalar_t>(), zeros.data<int>(), g_idx.data<int>(),
         batch, vec_height, height, width, zero_width
@@ -354,10 +356,11 @@ void vecquant3matmul_cuda(
     (width + BLOCKWIDTH - 1) / BLOCKWIDTH
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
   AT_DISPATCH_FLOATING_TYPES(
     vec.type(), "vecquant3matmul_cuda", ([&] {
-      VecQuant3MatMulKernel<<<blocks, threads>>>(
+      VecQuant3MatMulKernel<<<blocks, threads, 0, stream>>>(
         vec.data<scalar_t>(), mat.data<int>(), mul.data<scalar_t>(),
         scales.data<scalar_t>(), zeros.data<int>(), g_idx.data<int>(),
         batch, vec_height, height, width, zero_width
@@ -499,10 +502,11 @@ void vecquant4matmul_cuda(
     (width + BLOCKWIDTH - 1) / BLOCKWIDTH
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
   AT_DISPATCH_FLOATING_TYPES(
     vec.type(), "vecquant4matmul_cuda", ([&] {
-      VecQuant4MatMulKernel<<<blocks, threads>>>(
+      VecQuant4MatMulKernel<<<blocks, threads, 0, stream>>>(
         vec.data<scalar_t>(), mat.data<int>(), mul.data<scalar_t>(),
         scales.data<scalar_t>(), zeros.data<int>(), g_idx.data<int>(),
         batch, vec_height, height, width, zero_width
@@ -587,10 +591,11 @@ void vecquant8matmul_cuda(
     (width + BLOCKWIDTH - 1) / BLOCKWIDTH
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
   AT_DISPATCH_FLOATING_TYPES(
     vec.type(), "vecquant8matmul_cuda", ([&] {
-      VecQuant8MatMulKernel<<<blocks, threads>>>(
+      VecQuant8MatMulKernel<<<blocks, threads, 0, stream>>>(
         vec.data<scalar_t>(), mat.data<int>(), mul.data<scalar_t>(),
         scales.data<scalar_t>(), zeros.data<int>(), g_idx.data<int>(),
         batch, vec_height, height, width, zero_width
@@ -676,10 +681,11 @@ void vecquant2matmul_cuda_old(
     batch
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
   AT_DISPATCH_FLOATING_TYPES(
     vec.type(), "vecquant2matmul_cuda_old", ([&] {
-      VecQuant2MatMulKernel_old<<<blocks, threads>>>(
+      VecQuant2MatMulKernel_old<<<blocks, threads, 0, stream>>>(
         vec.data<scalar_t>(), mat.data<int>(), mul.data<scalar_t>(),
         scales.data<scalar_t>(), zeros.data<int>(),
         batch, vec_height, height, width, zero_width, groupsize
@@ -771,10 +777,11 @@ void vecquant3matmul_cuda_old(
     batch
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
   AT_DISPATCH_FLOATING_TYPES(
     vec.type(), "vecquant3matmul_cuda_old", ([&] {
-      VecQuant3MatMulKernel_old<<<blocks, threads>>>(
+      VecQuant3MatMulKernel_old<<<blocks, threads, 0, stream>>>(
         vec.data<scalar_t>(), mat.data<int>(), mul.data<scalar_t>(),
         scales.data<scalar_t>(), zeros.data<int>(),
         batch, vec_height, height, width, zero_width, groupsize
@@ -930,10 +937,11 @@ void vecquant4matmul_cuda_old(
     batch
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
   AT_DISPATCH_FLOATING_TYPES(
     vec.type(), "vecquant4matmul_cuda_old", ([&] {
-      VecQuant4MatMulKernel_old<<<blocks, threads>>>(
+      VecQuant4MatMulKernel_old<<<blocks, threads, 0, stream>>>(
         vec.data<scalar_t>(), mat.data<int>(), mul.data<scalar_t>(),
         scales.data<scalar_t>(), zeros.data<int>(),
         batch, vec_height, height, width, zero_width, groupsize
@@ -1017,10 +1025,11 @@ void vecquant8matmul_cuda_old(
     batch
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
   AT_DISPATCH_FLOATING_TYPES(
     vec.type(), "vecquant8matmul_cuda_old", ([&] {
-      VecQuant8MatMulKernel_old<<<blocks, threads>>>(
+      VecQuant8MatMulKernel_old<<<blocks, threads, 0, stream>>>(
         vec.data<scalar_t>(), mat.data<int>(), mul.data<scalar_t>(),
         scales.data<scalar_t>(), zeros.data<int>(),
         batch, vec_height, height, width, zero_width, groupsize
@@ -1101,8 +1110,9 @@ void vecquant2matmul_faster_cuda_old(
     batch
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-  VecQuant2MatMulKernelFaster_old<<<blocks, threads>>>(
+  VecQuant2MatMulKernelFaster_old<<<blocks, threads, 0, stream>>>(
     (half2*) vec.data_ptr(),
     mat.data_ptr<int>(),
     mul.data_ptr<float>(),
@@ -1201,8 +1211,9 @@ void vecquant3matmul_faster_cuda_old(
     batch
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-  VecQuant3MatMulKernelFaster_old<<<blocks, threads>>>(
+  VecQuant3MatMulKernelFaster_old<<<blocks, threads, 0, stream>>>(
     (half2*) vec.data_ptr(),
     mat.data_ptr<int>(),
     mul.data_ptr<float>(),
@@ -1353,8 +1364,9 @@ void vecquant4matmul_faster_cuda_old(
     batch
   );
   dim3 threads(BLOCKWIDTH);
+  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-  VecQuant4MatMulKernelFaster_old<<<blocks, threads>>>(
+  VecQuant4MatMulKernelFaster_old<<<blocks, threads, 0, stream>>>(
     (half2*) vec.data_ptr(),
     mat.data_ptr<int>(),
     mul.data_ptr<float>(),

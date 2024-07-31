@@ -1,3 +1,4 @@
+#include <ATen/cuda/CUDAContext.h>
 #include "q_gemm.cuh"
 #include "util.cuh"
 #include "matrix_view.cuh"
@@ -43,8 +44,9 @@ void gemm_half_q_half_cuda_part
         gridDim.z = DIVIDE(size_k, BLOCK_KN_SIZE);
 
         fp_gemm_half_q_half_kernel kernel = pick_gemm_half_q_half_kernel(true, m_count);
+        cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-        kernel<<<gridDim, blockDim>>>
+        kernel<<<gridDim, blockDim, 0, stream>>>
         (
             a,
             b->cuda_q_weight,
@@ -81,8 +83,9 @@ void gemm_half_q_half_cuda_part
 //         DBGX((uint64_t) b->cuda_q_perm);
 //         DBGI(b->rows_4);
 //         DBGI(b->height);
+        cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-        kernel<<<gridDim, blockDim>>>
+        kernel<<<gridDim, blockDim, 0, stream>>>
         (
             a,
             b->cuda_q_weight,
@@ -207,5 +210,6 @@ void clear_tensor_cuda
     blockDim.y = 1;
     gridDim.x = DIVIDE(size_n / 8, CLEAR_N_SIZE);
     gridDim.y = size_m;
-    clear_kernel<<<gridDim, blockDim>>>(c, size_m, size_n);
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream();
+    clear_kernel<<<gridDim, blockDim, 0, stream>>>(c, size_m, size_n);
 }

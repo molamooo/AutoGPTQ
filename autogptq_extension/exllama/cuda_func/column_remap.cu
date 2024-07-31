@@ -1,5 +1,6 @@
 // Adapted from turboderp exllama: https://github.com/turboderp/exllama
 
+#include <ATen/cuda/CUDAContext.h>
 #include "column_remap.cuh"
 #include "../util.cuh"
 
@@ -58,6 +59,7 @@ void column_remap_cuda
         (x_height + SHUF_BLOCKSIZE_Y - 1) / SHUF_BLOCKSIZE_Y,
         1
     );
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-    column_remap_kernel<<<blocks, threads>>>(x, x_new, x_width, x_height, x_map);
+    column_remap_kernel<<<blocks, threads, 0, stream>>>(x, x_new, x_width, x_height, x_map);
 }

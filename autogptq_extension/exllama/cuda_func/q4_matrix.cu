@@ -1,5 +1,6 @@
 // Adapted from turboderp exllama: https://github.com/turboderp/exllama
 
+#include <ATen/cuda/CUDAContext.h>
 #include "q4_matrix.cuh"
 #include <vector>
 #include "../util.cuh"
@@ -153,7 +154,8 @@ void Q4Matrix::make_sequential(const uint32_t* cpu_g_idx)
         1
     );
 
-    make_sequential_kernel<<<blocks, threads>>>(cuda_qweight, cuda_new_qweight, cuda_x_map, height / 8, width);
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream();
+    make_sequential_kernel<<<blocks, threads, 0, stream>>>(cuda_qweight, cuda_new_qweight, cuda_x_map, height / 8, width);
 
     // Replace qweights
 
@@ -221,5 +223,6 @@ void Q4Matrix::reconstruct(half* out)
         1
     );
 
-    reconstruct_kernel<<<blocks, threads>>>(cuda_qweight, out, cuda_scales, cuda_qzeros, height / 8, width, groupsize);
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream();
+    reconstruct_kernel<<<blocks, threads, 0, stream>>>(cuda_qweight, out, cuda_scales, cuda_qzeros, height / 8, width, groupsize);
 }
